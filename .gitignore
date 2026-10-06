@@ -1,2 +1,11 @@
 /ReporteControlTotal.exe
 /ReporteControlTotal
+
+# Entornos locales y credenciales (también en subdirectorios)
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example

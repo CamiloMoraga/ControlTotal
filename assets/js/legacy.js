@@ -1,11 +1,15 @@
 
-    const firebaseConfig = { 
-        apiKey: "AIzaSyAWSRthEikFWMWZjNx60WaG8M4WUTV9G_o", 
-        authDomain: "ctpis-cc49e.firebaseapp.com", 
-        projectId: "ctpis-cc49e", 
-        storageBucket: "ctpis-cc49e.firebasestorage.app", 
-        messagingSenderId: "626395730468", 
-        appId: "1:626395730468:web:8f168aef0124accfb97eb1" 
+    // LEGACY REFERENCE ONLY
+    // Firebase fue retirado de Control Total v2.
+    // Las credenciales originales fueron eliminadas deliberadamente.
+    // Este archivo se conserva únicamente como referencia funcional.
+    const firebaseConfig = {
+        apiKey: "<REMOVED>",
+        authDomain: "<REMOVED>",
+        projectId: "<REMOVED>",
+        storageBucket: "<REMOVED>",
+        messagingSenderId: "<REMOVED>",
+        appId: "<REMOVED>"
     };
 
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
