@@ -1,0 +1,17 @@
+/* Estilos limitados al modal histórico para conservar el reporte y sus PNG. */
+#modalDashboard .modal-content { border: 0; border-radius: 12px; overflow: hidden; }
+#modalDashboard .modal-header { background: linear-gradient(135deg, #0096a0, #005f66); color: #fff; }
+#modalDashboard .modal-body { background: #f4f8f9; }
+#modalDashboard .dashboard-card { background: #fff; border: 1px solid #dce8e9; border-radius: 10px; padding: 16px; }
+#modalDashboard .dashboard-card h3 { color: #005f66; font-weight: 700; }
+#modalDashboard .dashboard-kpi strong { display: block; color: #007f88; font-size: clamp(1.25rem, 3vw, 1.8rem); margin-top: 6px; }
+#modalDashboard .dashboard-chart { position: relative; height: 290px; }
+#modalDashboard .dashboard-chart-scroll { max-height: 420px; overflow-y: auto; }
+#modalDashboard .dashboard-ranking { max-height: 420px; overflow: auto; }
+#modalDashboard th { position: sticky; top: 0; background: #edf6f6; color: #005f66; }
+#modalDashboard select:focus, #modalDashboard input:focus { border-color: #0096a0; box-shadow: 0 0 0 .2rem rgba(0, 150, 160, .15); }
+#modalDashboard .table td:first-child { overflow-wrap: anywhere; }
+@media (max-width: 575.98px) {
+    #modalDashboard .dashboard-card { padding: 12px; }
+    #modalDashboard .dashboard-chart { height: 250px; }
+}

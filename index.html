@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Unificado - Captura de Datos</title>
+    
+    <meta name="theme-color" content="#0096a0">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+
+    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body class="bg-light p-3 login-active">
+
+<div id="login-container" class="d-flex align-items-center justify-content-center vh-100 bg-light position-fixed w-100 top-0 start-0" style="z-index: 1050;">
+    <div class="card shadow p-4 border-0" style="max-width: 380px; width: 100%; border-radius: 12px;">
+        <div class="text-center mb-4">
+            <h4 class="text-corp fw-bold mb-1"><i class="bi bi-shield-check"></i> CTPis</h4>
+            <small class="text-muted d-block">Reporte Unificado Diario</small>
+        </div>
+        <form id="form-login" onsubmit="window.iniciarSesion(event)">
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary">Correo Electrónico</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
+                    <input type="email" id="login-email" class="form-control" required placeholder="usuario@correo.cl">
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-secondary">Contraseña</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="bi bi-key"></i></span>
+                    <input type="password" id="login-pass" class="form-control" required placeholder="••••••••">
+                </div>
+            </div>
+            <div id="login-error" class="alert alert-danger p-2 small d-none text-center" role="alert"></div>
+            <button type="submit" id="btn-login" class="btn btn-corp-gradient w-100 fw-bold">Ingresar al Sistema</button>
+        </form>
+    </div>
+</div>
+
+<div id="main-app-container" class="d-none">
+    <div id="contenedor-reporte-unificado" class="p-4 bg-white border rounded shadow-sm mx-auto">
+        <div class="reporte-header-container border-bottom mb-4 pb-3">
+            <div class="row align-items-center">
+                <div class="col-xl-4 col-lg-4 col-md-12">
+                    <h4 style="color: #0096a0; font-weight: bold; margin: 0;">Reporte Control Total</h4>
+                    <small class="text-muted">Novedades, Fallas y Alarmas</small>
+                    <div class="mt-2" data-html2canvas-ignore="true">
+                        <button class="btn btn-sm btn-outline-primary fw-bold" onclick="window.avanzarSiguienteDia()"><i class="bi bi-calendar-plus"></i> Siguiente Día</button>
+                    </div>
+                </div>
+                
+                <div class="col-xl-8 col-lg-8 col-md-12 mt-3 mt-lg-0 d-flex justify-content-end align-items-center">
+                    <div class="text-end me-lg-3">
+                        <div class="mb-2 d-flex flex-row flex-nowrap align-items-center justify-content-end gap-2" style="overflow-x: auto;">
+                            <label class="fw-bold text-secondary small text-nowrap">Cierre:</label>
+                            <input type="date" id="ru-fecha" class="form-control form-control-sm d-inline-block flex-shrink-0" style="width: 120px;" onchange="window.sincronizarRango(); window.cargarReporteUnificado()">
+                            
+                            <div class="vr mx-1"></div>
+                            
+                            <label class="fw-bold text-secondary small text-nowrap">Período:</label>
+                            <input type="time" id="ru-hora-inicio" class="form-control form-control-sm flex-shrink-0 px-1" style="width: 75px;" value="07:30" onchange="window.sincronizarHoraFin(); window.guardarReporteUnificado()">
+                            <span id="ru-lbl-fecha-ini" class="small fw-bold text-dark mx-1">-</span>
+                            <span class="small fw-bold text-muted">a</span>
+                            <input type="time" id="ru-hora-fin" class="form-control form-control-sm flex-shrink-0 px-1" style="width: 75px;" value="07:30" onchange="window.guardarReporteUnificado()">
+                            <span id="ru-lbl-fecha-fin" class="small fw-bold text-dark ms-1">-</span>
+                        </div>
+                        <div id="ru-responsables-container" class="d-flex flex-row flex-nowrap align-items-center justify-content-end gap-3 mt-1" style="overflow-x: auto; padding-bottom: 5px;">
+                        </div>
+                    </div>
+                    <div class="d-none d-lg-block text-end flex-shrink-0">
+                        <img src="im/logo1.jpg" style="height: 45px; object-fit: contain;" onerror="this.style.display='none'">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top flex-wrap align-items-center justify-content-center text-center" data-html2canvas-ignore="true">
+                <div class="me-auto bg-light border rounded px-2 py-1 text-muted small mb-2 mb-md-0 w-100 w-md-auto text-start">
+                    <i class="bi bi-person-circle"></i> <span id="lbl-usuario-actual"></span>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <button class="btn btn-sm btn-outline-primary fw-bold" onclick="window.capturarImagenPortapapeles()"><i class="bi bi-clipboard-check"></i> Copiar Total</button>
+                    <button class="btn btn-sm btn-outline-success fw-bold" onclick="window.descargarImagenTotal()"><i class="bi bi-image"></i> Descargar Total</button>
+                    <button class="btn btn-sm btn-outline-info fw-bold text-dark" onclick="window.descargarExcelEventos()"><i class="bi bi-file-earmark-excel"></i> Excel Diario</button>
+                    
+                    <button type="button" class="btn btn-sm btn-outline-info fw-bold text-dark" onclick="window.abrirDashboard()" data-html2canvas-ignore="true"><i class="bi bi-bar-chart-line"></i> Dashboard</button>
+                    <button id="btn-sincronizar" class="btn btn-sm btn-outline-warning fw-bold ms-md-1 text-dark" onclick="window.sincronizarDesdeNube()" title="Forzar verificación y descarga de datos reales desde la base de datos"><i class="bi bi-arrow-repeat"></i> Sincronizar</button>
+
+                    <button id="btn-opciones" class="btn btn-sm btn-outline-dark fw-bold ms-md-3 d-none" onclick="window.abrirConfiguracionOpciones()"><i class="bi bi-gear-fill"></i> Opciones</button>
+                    <button class="btn btn-sm btn-corp-gradient fw-bold ms-md-1" onclick="window.guardarReporteUnificado()"><i class="bi bi-floppy-fill"></i> Guardar BD</button>
+                    
+                    <div class="vr mx-1 d-none d-md-block"></div>
+                    <button class="btn btn-sm btn-outline-danger fw-bold" onclick="window.cerrarSesion()"><i class="bi bi-box-arrow-right"></i> Salir</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4" id="grilla-centros">
+            <div class="col-12 text-center text-muted py-4"><div class="spinner-border text-info spinner-border-sm me-2"></div>Cargando datos...</div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalSyncEvento" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white py-2">
+                <h6 class="modal-title"><i class="bi bi-hdd-network-fill me-2"></i>Confirmar Incidencia</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <p class="small text-muted mb-3" id="msg-sync-evento">Confirma el cambio de esta incidencia:</p>
+                <p class="small text-muted mb-0">Los cambios de esta incidencia se reflejan en los reportes y el Dashboard.</p>
+            </div>
+            <div class="modal-footer py-2 bg-white border-top">
+                <button type="button" class="btn btn-secondary btn-sm fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-corp-gradient btn-sm fw-bold px-4" id="btn-confirmar-sync" onclick="window.ejecutarSyncEvento()">Confirmar Acción</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalMatrizEstanques" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white py-2">
+                <h6 class="modal-title"><i class="bi bi-grid-3x3-gap-fill"></i> Matriz Visual de Selección de Estanques</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <p class="small text-muted text-center fw-bold mb-3">Toca los estanques que desees incluir en el registro de este evento.</p>
+                <div class="d-flex flex-wrap gap-2 justify-content-center" id="grid-estanques"></div>
+            </div>
+            <div class="modal-footer py-2 justify-content-center bg-white border-top">
+                <button class="btn btn-sm btn-outline-danger fw-bold me-auto" onclick="window.limpiarMatriz()"><i class="bi bi-eraser-fill"></i> Limpiar</button>
+                <button class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-corp-gradient fw-bold px-4" onclick="window.guardarMatriz()"><i class="bi bi-check-circle-fill"></i> Confirmar Estanques</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConfigOpciones" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white py-2">
+                <h6 class="modal-title"><i class="bi bi-diagram-3-fill"></i> Opciones del Reporte Unificado</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <div class="row g-3">
+                    <div class="col-12"><div class="config-section" style="border: 2px solid #dc3545; background-color: #fffafb;"><h6 class="text-danger small fw-bold"><i class="bi bi-building-exclamation"></i> 0. Gestión de Centros Productivos</h6><div class="input-group input-group-sm mb-2" style="max-width: 400px;"><input type="text" id="nuevo-centro" class="form-control" placeholder="Nombre del centro..."><button class="btn btn-danger fw-bold" onclick="window.agregarOpcion('centros', 'nuevo-centro')">+ Añadir</button></div><div id="lista-centros"></div></div></div>
+                    <div class="col-md-6"><div class="config-section" style="border: 1px solid #0096a0;"><h6 class="text-corp small fw-bold"><i class="bi bi-pen-fill"></i> Nombres Firmantes (Cabecera)</h6><div class="input-group input-group-sm mb-2"><input type="text" id="nuevo-firmante" class="form-control" placeholder="Nombre completo"><button class="btn btn-success" onclick="window.agregarOpcion('firmantes', 'nuevo-firmante')">+</button></div><div id="lista-firmantes"></div></div></div>
+                    <div class="col-md-6"><div class="config-section" style="border: 1px solid #6c757d;"><h6 class="text-corp small fw-bold"><i class="bi bi-person-badge"></i> Personal Técnico / Operadores</h6><div class="input-group input-group-sm mb-2"><input type="text" id="nuevo-pers-nombre" class="form-control" placeholder="Nombre"><input type="text" id="nuevo-pers-cargo" class="form-control" placeholder="Cargo" style="max-width: 30%;"><button class="btn btn-success" onclick="window.agregarPersonal()">+</button></div><div id="lista-personal"></div></div></div>
+                    <div class="col-md-3"><div class="config-section"><h6 class="text-corp small fw-bold">Categorías Equipos</h6><div class="input-group input-group-sm mb-2"><input type="text" id="nueva-categoria" class="form-control" placeholder="Ej: Bombas"><button class="btn btn-success" onclick="window.agregarOpcion('categorias', 'nueva-categoria')">+</button></div><div id="lista-categorias"></div></div></div>
+                    <div class="col-md-3"><div class="config-section"><h6 class="text-corp small fw-bold">Parámetros Críticos</h6><div class="input-group input-group-sm mb-2"><input type="text" id="nuevo-parametro" class="form-control" placeholder="Ej: Oxígeno [mg/L]"><button class="btn btn-success" onclick="window.agregarOpcion('parametros', 'nuevo-parametro')">+</button></div><div id="lista-parametros"></div></div></div>
+                    <div class="col-md-3"><div class="config-section"><h6 class="text-corp small fw-bold">Condiciones</h6><div class="input-group input-group-sm mb-2"><input type="text" id="nueva-condicion" class="form-control" placeholder="Ej: Alto, Bajo"><button class="btn btn-success" onclick="window.agregarOpcion('condiciones', 'nueva-condicion')">+</button></div><div id="lista-condiciones"></div></div></div>
+                    <div class="col-md-3"><div class="config-section"><h6 class="text-corp small fw-bold">Áreas / Unidades</h6><div class="input-group input-group-sm mb-2"><input type="text" id="nueva-area" class="form-control" placeholder="Ej: Smolt"><button class="btn btn-success" onclick="window.agregarOpcion('areas', 'nueva-area')">+</button></div><div id="lista-areas"></div></div></div>
+                    <div class="col-md-6"><div class="config-section"><h6 class="text-corp small fw-bold">Motivos Principales</h6><div class="input-group input-group-sm mb-2"><input type="text" id="nuevo-motivo" class="form-control" placeholder="Ej: Falla Eléctrica"><button class="btn btn-success" onclick="window.agregarOpcion('motivos', 'nuevo-motivo')">+</button></div><div id="lista-motivos"></div></div></div>
+                    <div class="col-md-6"><div class="config-section bg-light" style="border: 2px dashed #0096a0;"><h6 class="text-corp small fw-bold"><i class="bi bi-diagram-2-fill"></i> Detalles Específicos (Submotivos)</h6><div class="input-group input-group-sm mb-2"><select id="sel-padre-motivo" class="form-select text-corp fw-bold" style="max-width: 40%;"></select><input type="text" id="nuevo-submotivo" class="form-control" placeholder="Sub-motivo específico..."><button class="btn btn-corp-gradient" onclick="window.agregarSubmotivo()">Enlazar</button></div><div id="lista-submotivos"></div></div></div>
+                </div>
+            </div>
+            <div class="modal-footer py-1">
+                <button class="btn btn-sm btn-primary w-100 fw-bold" onclick="window.guardarConfiguracionNube()">Guardar Cambios y Actualizar Interfaz</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalDashboard" tabindex="-1" aria-labelledby="dashboard-title" aria-hidden="true" data-html2canvas-ignore="true">
+ <div class="modal-dialog modal-xl modal-dialog-scrollable">
+  <div class="modal-content">
+   <div class="modal-header"><h2 class="modal-title h5" id="dashboard-title"><i class="bi bi-bar-chart-line me-2"></i>Dashboard Histórico</h2><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+   <div class="modal-body">
+    <form id="dash-form" class="dashboard-card mb-3">
+     <div class="row g-3 align-items-end mb-3">
+      <div class="col-sm-6 col-lg-3"><label for="dash-inicio" class="form-label small fw-bold">Inicio</label><input type="date" id="dash-inicio" class="form-control form-control-sm" required></div>
+      <div class="col-sm-6 col-lg-3"><label for="dash-fin" class="form-label small fw-bold">Fin</label><input type="date" id="dash-fin" class="form-control form-control-sm" required></div>
+      <div class="col-lg-6 d-flex flex-wrap gap-2"><button type="button" class="btn btn-sm btn-outline-secondary" data-dash-range="7">Últimos 7 días</button><button type="button" class="btn btn-sm btn-outline-secondary" data-dash-range="15">Últimos 15 días</button><button type="button" class="btn btn-sm btn-outline-secondary" data-dash-range="mes">Este mes</button></div>
+     </div>
+     <div class="row g-3"><div class="col-sm-6 col-lg"><label for="dash-centro" class="form-label small fw-bold">Piscicultura / Centro</label><select id="dash-centro" class="form-select form-select-sm" multiple size="4"><option value="" selected>Todos</option></select></div>
+<div class="col-sm-6 col-lg"><label for="dash-area" class="form-label small fw-bold">Área / Unidad</label><select id="dash-area" class="form-select form-select-sm" multiple size="4"><option value="" selected>Todos</option></select></div>
+<div class="col-sm-6 col-lg"><label for="dash-parametro" class="form-label small fw-bold">Parámetro</label><select id="dash-parametro" class="form-select form-select-sm" multiple size="4"><option value="" selected>Todos</option></select></div>
+<div class="col-sm-6 col-lg"><label for="dash-motivo" class="form-label small fw-bold">Motivo Principal</label><select id="dash-motivo" class="form-select form-select-sm" multiple size="4"><option value="" selected>Todos</option></select></div>
+<div class="col-sm-6 col-lg"><label for="dash-submotivo" class="form-label small fw-bold">Sub-Motivo</label><select id="dash-submotivo" class="form-select form-select-sm" multiple size="4"><option value="" selected>Todos</option></select></div>
+</div>
+     <p class="small text-muted mt-2 mb-3">Seleccione varios valores con Ctrl/Cmd o Mayús. «Todos» no aplica restricciones. Los filtros se combinan entre sí.</p>
+     <div class="d-flex flex-wrap gap-2"><button type="submit" id="dash-consultar" class="btn btn-sm btn-corp-gradient"><i class="bi bi-search me-1"></i>Consultar histórico</button><button type="button" id="dash-excel" class="btn btn-sm btn-outline-success" disabled><i class="bi bi-file-earmark-excel me-1"></i>Descargar Excel</button></div>
+    </form>
+    <p id="dash-status" class="small" role="status" aria-live="polite">Seleccione un rango de fechas.</p>
+    <div class="row g-3 mb-3"><div class="col-6 col-lg-3"><div class="dashboard-card dashboard-kpi"><div class="small text-muted">Total eventos</div><strong id="dash-kpi-total">—</strong></div></div>
+<div class="col-6 col-lg-3"><div class="dashboard-card dashboard-kpi"><div class="small text-muted">Horas acumuladas</div><strong id="dash-kpi-horas">—</strong></div></div>
+<div class="col-6 col-lg-3"><div class="dashboard-card dashboard-kpi"><div class="small text-muted">Eventos en curso</div><strong id="dash-kpi-abiertos">—</strong></div></div>
+<div class="col-6 col-lg-3"><div class="dashboard-card dashboard-kpi"><div class="small text-muted">Centros involucrados</div><strong id="dash-kpi-centros">—</strong></div></div>
+</div>
+    <p class="small text-muted">Total eventos cuenta documentos. En los gráficos y rankings, «Eventos» suma ocurrencias (1 cuando falta o no es numérico). Las horas suman la duración de cada documento; los eventos abiertos acumulan hasta la hora de consulta.</p>
+    <div class="row g-3 mb-3"><div class="col-lg-6"><section class="dashboard-card h-100"><h3 class="h6">Eventos por Piscicultura</h3><div class="dashboard-chart-scroll"><div class="dashboard-chart" id="dash-wrap-centros"><canvas id="dash-chart-centros" role="img" aria-label="Eventos por Piscicultura"></canvas></div></div><p id="dash-empty-centros" class="small text-muted d-none">Sin resultados.</p></section></div>
+<div class="col-lg-6"><section class="dashboard-card h-100"><h3 class="h6">Horas por Motivo</h3><div class="dashboard-chart-scroll"><div class="dashboard-chart" id="dash-wrap-motivos"><canvas id="dash-chart-motivos" role="img" aria-label="Horas por Motivo"></canvas></div></div><p id="dash-empty-motivos" class="small text-muted d-none">Sin resultados.</p></section></div>
+<div class="col-lg-6"><section class="dashboard-card h-100"><h3 class="h6">Fallas vs Alarmas</h3><div class="dashboard-chart-scroll"><div class="dashboard-chart" id="dash-wrap-tipos"><canvas id="dash-chart-tipos" role="img" aria-label="Fallas vs Alarmas"></canvas></div></div><p id="dash-empty-tipos" class="small text-muted d-none">Sin resultados.</p></section></div>
+
+     <div class="col-lg-6"><section class="dashboard-card h-100"><h3 class="h6">Ranking de Parámetros</h3><div class="dashboard-ranking table-responsive"><table class="table table-sm align-middle"><thead><tr><th>Parámetro</th><th class="text-end">Eventos</th><th class="text-end">Horas acumuladas</th></tr></thead><tbody id="dash-ranking-parametros"></tbody></table></div></section></div>
+    </div>
+    <section class="dashboard-card"><h3 class="h6">Análisis configurable</h3>
+     <div class="row g-3 mb-3"><div class="col-sm-6"><label for="dash-agrupar" class="form-label small">Agrupar por</label><select id="dash-agrupar" class="form-select form-select-sm"><option value="motivo">Motivo Principal</option><option value="submotivo">Sub-Motivo</option><option value="parametro">Parámetro</option><option value="area">Área</option><option value="nombre_centro">Piscicultura</option></select></div><div class="col-sm-6"><label for="dash-metrica" class="form-label small">Métrica</label><select id="dash-metrica" class="form-select form-select-sm"><option value="eventos">Frecuencia (N° eventos)</option><option value="horas">Impacto (duración en horas)</option></select></div></div>
+     <div class="row g-3"><div class="col-lg-7"><div class="dashboard-chart-scroll"><div class="dashboard-chart" id="dash-wrap-analisis"><canvas id="dash-chart-analisis" role="img" aria-label="Análisis configurable"></canvas></div></div><p id="dash-empty-analisis" class="small text-muted d-none">Sin resultados.</p></div><div class="col-lg-5"><div class="dashboard-ranking table-responsive"><table class="table table-sm align-middle"><thead><tr><th id="dash-ranking-label">Motivo Principal</th><th class="text-end">Eventos</th><th class="text-end">Horas acumuladas</th></tr></thead><tbody id="dash-ranking-analisis"></tbody></table></div></div></div>
+    </section>
+   </div>
+   <div class="modal-footer"><button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cerrar</button></div>
+  </div>
+ </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/legacy.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="assets/js/dashboard.js"></script>
+</body>
+</html>
