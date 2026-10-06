@@ -1,0 +1,59 @@
+@import "tailwindcss" source(none);
+@source "../";
+
+:root {
+  --background: #f4f6f8;
+  --surface: #ffffff;
+  --foreground: #1e2b38;
+  --muted: #647384;
+  --border: #dfe5eb;
+  --accent: #146f75;
+  --accent-soft: #eaf4f3;
+  --sidebar: #172c36;
+  --sidebar-text: #cbd7dc;
+  --sidebar-muted: #95aab4;
+  --sidebar-border: #2b414c;
+  --sidebar-active: #27454e;
+  --sidebar-hover: #203943;
+  --sidebar-accent: #7ac9bc;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-text: var(--sidebar-text);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --font-sans: Arial, Helvetica, sans-serif;
+}
+
+body {
+  min-width: 1100px;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+aside a:focus-visible {
+  outline-color: var(--sidebar-accent);
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--foreground);
+}

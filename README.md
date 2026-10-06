@@ -1,112 +1,63 @@
-# Reporte Control Total
+# Control Total
 
-Aplicación Vanilla HTML/CSS/JavaScript conectada a Firebase Authentication y
-Firestore. El CSS está en `assets/css/app.css` y el JavaScript de la aplicación
-en `assets/js/legacy.js`. Este último se carga como script clásico al final de
-`index.html`, después de las dependencias CDN, sin `async`, `defer` ni módulos
-ES. La copia exacta del documento original está en
-`legacy/Reporte_Unificado70.html`.
+Nueva aplicación operacional para Control y Monitoreo de pisciculturas.
 
-## Ejecutar en Windows
+**Estado:** Control Total v2 en desarrollo. Los módulos disponen de navegación y
+estados vacíos; sus funcionalidades operacionales aún no están implementadas.
 
-Haz doble clic sobre `ReporteControlTotal.exe`. El launcher inicia el servidor
-local en `127.0.0.1:5500` y abre `http://127.0.0.1:5500` en el navegador
-predeterminado. No necesitas instalar Python, Node, npm ni Go, ni escribir
-comandos.
+## Stack actual
 
-Mantén el ejecutable en la raíz del proyecto, junto a `index.html` y `assets/`.
-Puedes abrirlo mediante un acceso directo con otro directorio de trabajo:
-los archivos se buscan junto al ejecutable, no en el directorio de trabajo.
+- Next.js con App Router
+- TypeScript
+- Tailwind CSS
 
-Mantén abierta la ventana del servidor mientras utilizas el reporte. Para
-detenerlo, cierra esa ventana o presiona `Ctrl+C`. Si falta `index.html` o el
-puerto 5500 está ocupado, se muestra un error y la ventana espera Enter antes
-de cerrarse. Si falla la apertura automática del navegador, puedes abrir la
-dirección indicada manualmente.
+## Stack planificado
 
-El servidor acepta conexiones únicamente en `127.0.0.1`. No requiere permisos
-de administrador ni cambios en el firewall. Las dependencias CDN y Firebase
-siguen utilizando Internet como en la aplicación original.
+- PostgreSQL / Supabase
+- Prisma
+- Supabase Auth
+- Vercel
 
-## Compilar en Fedora
+## Desarrollo local
 
-Go se necesita solamente en desarrollo. Desde la raíz del proyecto:
+Usar Node.js 24 LTS (indicado en `.nvmrc`) y npm. Con nvm disponible:
 
 ```bash
-cd launcher
-GOOS=windows GOARCH=amd64 go build -o ../ReporteControlTotal.exe
+nvm use
+npm install
+npm run dev
 ```
 
-El ejecutable de Windows amd64 se genera en la raíz. `launcher/go.mod` permite
-ejecutar ese comando sin dependencias externas. Distribuye el ejecutable junto
-con `index.html` y la carpeta `assets/`, incluyendo las imágenes que utilice
-el reporte. No se utiliza `go:embed`: puedes editar los archivos web sin
-recompilar el launcher.
+Abrir [http://localhost:3000](http://localhost:3000).
+La aplicación inicia sin archivos de entorno locales ni servicios externos.
+`.env.example` queda reservada para las siguientes etapas.
 
-Si Go no puede obtener el estado de Git (por ejemplo, en una copia con metadatos
-Git inaccesibles), utiliza esta variante desde `launcher/`:
+## Validación y ejecución de producción
 
 ```bash
-GOOS=windows GOARCH=amd64 go build -buildvcs=false -o ../ReporteControlTotal.exe
+npm run lint
+npm run build
+npm run start
 ```
 
-La misma opción `-buildvcs=false` puede utilizarse para compilar en Linux.
+`npm run start` sirve la compilación de producción en el puerto 3000.
+Los scripts de desarrollo y compilación utilizan Webpack.
 
-Para comprobar la compilación y ejecución en Linux, desde `launcher/`:
+## Legacy
 
-```bash
-go build -o ../ReporteControlTotal
-../ReporteControlTotal
-```
+El sistema anterior basado en Firebase se conserva en `/legacy` solamente como
+referencia funcional y técnica. Sus configuraciones de acceso fueron saneadas;
+no debe utilizarse como aplicación productiva.
 
-En Linux, abre manualmente `http://127.0.0.1:5500`. La apertura automática del
-navegador está implementada para Windows.
+No se migrarán datos históricos desde Firebase hacia PostgreSQL. La nueva base
+comenzará desde cero a partir de la puesta en marcha de Control Total v2.
 
-## Hallazgos previos conservados
+Temporalmente permanecen `index.html`, `Reporte_Unificado70.html`, `assets/`,
+`scripts/`, `tests/` y `launcher/` del sistema anterior. No interfieren con las
+rutas de Next.js y no se incorporan a la aplicación nueva. TypeScript y ESLint
+validan la nueva base sin refactorizar el código histórico.
 
-- El botón «Siguiente Día» llama a `avanzarSiguienteDia`, que no está definida
-  en el documento original disponible.
-- Se referencia `im/logo1.jpg`, pero ese recurso no está en el proyecto
-  disponible. Se conserva la ruta y el comportamiento original al faltar.
-- Las exportaciones de imagen actuales generan PNG, aunque se hayan descrito
-  como JPG.
-
-Estos hallazgos no se corrigen en este bloque.
-
-## Etapa 2: JavaScript externo
-
-La extracción conserva exactamente el código original, incluidos comentarios,
-variables globales, handlers inline y temporizadores. No cambia Firebase ni
-las rutas de datos.
-
-Al distribuir o copiar el proyecto, incluye `assets/js/legacy.js`: si falta o
-no puede cargarse, la aplicación no se inicializa. El orden de ejecución se
-conserva mediante la carga clásica, sincrónica, en la posición del bloque
-original. La validación visual y funcional en el navegador sigue siendo
-necesaria antes de aprobar la etapa.
-
-## Normalización de incidencias
-
-`eventos_historicos` es la única fuente de incidencias. Los arrays antiguos dentro
-de reportes diarios se preservan físicamente, pero la aplicación no los utiliza ni
-los escribe. El reporte diario guarda sólo responsables, horas y textos por centro.
-`ru-fecha` es la fecha de cierre operacional. La ventana de incidencias va desde
-el día anterior con horaInicio hasta la fecha seleccionada con horaFin, usando
-fechas locales e intervalos `[inicio, fin)`. `fecha_reporte` se calcula desde el
-inicio real del evento y la hora de corte; la visibilidad depende de la
-intersección temporal, incluso para incidencias retroactivas. Los guardados
-rechazan cierres anteriores o iguales al inicio.
-
-Antes de distribuir esta versión, ejecutar la auditoría no destructiva documentada
-en [scripts/README-incidencias.md](scripts/README-incidencias.md) para identificar
-IDs sólo legacy y metadata histórica incompleta. El script no se carga ni se
-ejecuta automáticamente. No hay migración de los registros sólo legacy.
-
-Validación local sin acceso a Firebase:
-
-```bash
-node tests/normalizacion-incidencias.test.cjs
-node tests/eliminacion-eventos.test.cjs
-node tests/regresion-modal-incidencias.test.cjs
-node tests/semantica-temporal.test.cjs
-```
+Las instrucciones y notas anteriores se conservaron en
+[legacy/README-aplicacion-anterior.md](legacy/README-aplicacion-anterior.md).
+Describen exclusivamente el sistema histórico. Consultar también
+[legacy/README.md](legacy/README.md).
