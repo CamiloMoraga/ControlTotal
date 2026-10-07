@@ -6,3 +6,366 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum SistemaParametros {
+  HATCHERY
+  FRY
+  ONGROWING
+  SMOLT_1
+  SMOLT_2
+
+  @@map("sistema_parametros")
+}
+
+enum TipoIncidenciaCamara {
+  INTERMITENTE
+  FALLA
+
+  @@map("tipo_incidencia_camara")
+}
+
+enum TurnoReporte {
+  NOCHE
+  DIA
+  TARDE
+
+  @@map("turno_reporte")
+}
+
+model Piscicultura {
+  id          String   @id @default(uuid()) @db.Uuid
+  nombre      String   @unique
+  codigo      String?  @unique
+  orden       Int      @default(0)
+  activa      Boolean  @default(true)
+  notaCamaras String?  @map("nota_camaras") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  jornadasParametros             JornadaParametros[]
+  camaras                        Camara[]
+  reportesDiariosPiscicultura    ReporteDiarioPiscicultura[]
+  reportesUnificadosPiscicultura ReporteUnificadoPiscicultura[]
+  eventosOperacionales           EventoOperacional[]
+
+  @@map("piscicultura")
+}
+
+model Parametro {
+  id        String   @id @default(uuid()) @db.Uuid
+  codigo    String   @unique
+  nombre    String
+  unidad    String?
+  orden     Int      @default(0)
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  mediciones           MedicionParametro[]
+  eventosOperacionales EventoOperacional[]
+
+  @@map("parametro")
+}
+
+model JornadaParametros {
+  id             String   @id @default(uuid()) @db.Uuid
+  pisciculturaId String   @map("piscicultura_id") @db.Uuid
+  fecha          DateTime @db.Date
+  responsable    String?
+  /// Snapshot pequeño de configuración; nunca contiene mediciones.
+  configuracion  Json?    @db.JsonB
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  piscicultura Piscicultura       @relation(fields: [pisciculturaId], references: [id], onDelete: Restrict)
+  muestras     MuestraParametro[]
+
+  @@unique([pisciculturaId, fecha])
+  @@index([fecha])
+  @@map("jornada_parametros")
+}
+
+model MuestraParametro {
+  id           String            @id @default(uuid()) @db.Uuid
+  jornadaId    String            @map("jornada_id") @db.Uuid
+  sistema      SistemaParametros
+  hora         DateTime          @db.Time(0)
+  flujoAbierto Boolean?          @map("flujo_abierto")
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  jornada    JornadaParametros   @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  mediciones MedicionParametro[]
+
+  @@unique([jornadaId, sistema, hora])
+  @@map("muestra_parametro")
+}
+
+model MedicionParametro {
+  id          String   @id @default(uuid()) @db.Uuid
+  muestraId   String   @map("muestra_id") @db.Uuid
+  parametroId String   @map("parametro_id") @db.Uuid
+  /// Identificador flexible del punto: GENERAL, F1, ESTANQUE_35, etc.
+  punto       String
+  valor       Decimal  @db.Decimal(12, 4)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  muestra   MuestraParametro @relation(fields: [muestraId], references: [id], onDelete: Cascade)
+  parametro Parametro        @relation(fields: [parametroId], references: [id], onDelete: Restrict)
+
+  @@unique([muestraId, parametroId, punto])
+  @@map("medicion_parametro")
+}
+
+model Camara {
+  id             String   @id @default(uuid()) @db.Uuid
+  pisciculturaId String   @map("piscicultura_id") @db.Uuid
+  nombre         String
+  orden          Int      @default(0)
+  activa         Boolean  @default(true)
+  nota           String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  piscicultura Piscicultura       @relation(fields: [pisciculturaId], references: [id], onDelete: Restrict)
+  incidencias  IncidenciaCamara[]
+
+  @@unique([pisciculturaId, nombre])
+  @@map("camara")
+}
+
+/// Activa cuando fin IS NULL. Estado y duración se calculan, no se almacenan.
+/// Bloque 2.3: agregar manualmente a la primera migración:
+/// CREATE UNIQUE INDEX incidencia_camara_una_abierta
+/// ON incidencia_camara(camara_id) WHERE fin IS NULL;
+/// CHECK (fin IS NULL OR fin > inicio).
+model IncidenciaCamara {
+  id          String               @id @default(uuid()) @db.Uuid
+  camaraId    String               @map("camara_id") @db.Uuid
+  tipo        TipoIncidenciaCamara
+  inicio      DateTime             @db.Timestamptz(3)
+  fin         DateTime?            @db.Timestamptz(3)
+  observacion String?              @db.Text
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  camara Camara @relation(fields: [camaraId], references: [id], onDelete: Restrict)
+
+  @@index([camaraId, inicio])
+  @@index([fin])
+  @@map("incidencia_camara")
+}
+
+model ReporteDiario {
+  id        String       @id @default(uuid()) @db.Uuid
+  fecha     DateTime     @db.Date
+  turno     TurnoReporte
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  pisciculturas ReporteDiarioPiscicultura[]
+
+  // El índice unique también cubre consultas por fecha (primer campo).
+  @@unique([fecha, turno])
+  @@map("reporte_diario")
+}
+
+model ReporteDiarioPiscicultura {
+  id             String   @id @default(uuid()) @db.Uuid
+  reporteId      String   @map("reporte_id") @db.Uuid
+  pisciculturaId String   @map("piscicultura_id") @db.Uuid
+  asistente      String?
+  operario       String?
+  novedades      String?  @db.Text
+  fallasAlarmas  String?  @map("fallas_alarmas") @db.Text
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  reporte      ReporteDiario @relation(fields: [reporteId], references: [id], onDelete: Cascade)
+  piscicultura Piscicultura  @relation(fields: [pisciculturaId], references: [id], onDelete: Restrict)
+
+  @@unique([reporteId, pisciculturaId])
+  @@index([pisciculturaId])
+  @@map("reporte_diario_piscicultura")
+}
+
+/// Ventana operacional: día anterior + horaInicio hasta fechaEmision + horaFin.
+/// Permite cruzar medianoche; no agregar CHECK horaFin > horaInicio.
+model ReporteUnificado {
+  id           String   @id @default(uuid()) @db.Uuid
+  // Unique ya proporciona el índice por fechaEmision.
+  fechaEmision DateTime @unique @map("fecha_emision") @db.Date
+  horaInicio   DateTime @map("hora_inicio") @db.Time(0)
+  horaFin      DateTime @map("hora_fin") @db.Time(0)
+  /// Snapshots de nombres operacionales, independientes de autenticación.
+  responsables String[]
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  pisciculturas ReporteUnificadoPiscicultura[]
+  eventosOrigen EventoOperacional[]
+
+  @@map("reporte_unificado")
+}
+
+model ReporteUnificadoPiscicultura {
+  id             String   @id @default(uuid()) @db.Uuid
+  reporteId      String   @map("reporte_id") @db.Uuid
+  pisciculturaId String   @map("piscicultura_id") @db.Uuid
+  /// Denominación legacy conservada; significado pendiente de refinar.
+  cabana         String?  @db.Text
+  tarde          String?  @db.Text
+  noche          String?  @db.Text
+  novedades      String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  reporte      ReporteUnificado @relation(fields: [reporteId], references: [id], onDelete: Cascade)
+  piscicultura Piscicultura     @relation(fields: [pisciculturaId], references: [id], onDelete: Restrict)
+
+  @@unique([reporteId, pisciculturaId])
+  @@index([pisciculturaId])
+  @@map("reporte_unificado_piscicultura")
+}
+
+/// Una sola fila por evento, aunque abarque varios reportes o días.
+/// Los reportes lo obtendrán por intersección temporal, sin copiarlo:
+/// inicio < ventana.fin AND (fin IS NULL OR fin > ventana.inicio).
+/// La aplicación validará motivoId == submotivo.motivoId cuando corresponda;
+/// no se introducen triggers ni una relación compuesta para esa consistencia.
+/// Bloque 2.3: agregar manualmente CHECK (fin IS NULL OR fin > inicio).
+model EventoOperacional {
+  id              String    @id @default(uuid()) @db.Uuid
+  pisciculturaId  String    @map("piscicultura_id") @db.Uuid
+  reporteOrigenId String?   @map("reporte_origen_id") @db.Uuid
+  inicio          DateTime  @db.Timestamptz(3)
+  fin             DateTime? @db.Timestamptz(3)
+  personal        String?   @db.Text
+  ocurrencias     Int       @default(1)
+  /// Texto libre hasta confirmar un catálogo estable en los casos de uso.
+  tipo            String?
+  motivoId        String?   @map("motivo_id") @db.Uuid
+  submotivoId     String?   @map("submotivo_id") @db.Uuid
+  categoriaId     String?   @map("categoria_id") @db.Uuid
+  parametroId     String?   @map("parametro_id") @db.Uuid
+  condicionId     String?   @map("condicion_id") @db.Uuid
+  areaId          String?   @map("area_id") @db.Uuid
+  /// Puede representar estados o valores no numéricos.
+  valor           String?
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  piscicultura  Piscicultura      @relation(fields: [pisciculturaId], references: [id], onDelete: Restrict)
+  reporteOrigen ReporteUnificado? @relation(fields: [reporteOrigenId], references: [id], onDelete: Restrict)
+  motivo        MotivoEvento?     @relation(fields: [motivoId], references: [id], onDelete: Restrict)
+  submotivo     SubmotivoEvento?  @relation(fields: [submotivoId], references: [id], onDelete: Restrict)
+  categoria     CategoriaEvento?  @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+  parametro     Parametro?        @relation(fields: [parametroId], references: [id], onDelete: Restrict)
+  condicion     CondicionEvento?  @relation(fields: [condicionId], references: [id], onDelete: Restrict)
+  area          AreaOperacional?  @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  estanques     EventoEstanque[]
+
+  @@index([pisciculturaId, inicio])
+  @@index([fin])
+  @@index([reporteOrigenId])
+  @@map("evento_operacional")
+}
+
+model EventoEstanque {
+  eventoId String @map("evento_id") @db.Uuid
+  estanque String
+
+  evento EventoOperacional @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  @@id([eventoId, estanque])
+  @@map("evento_estanque")
+}
+
+model CategoriaEvento {
+  id        String   @id @default(uuid()) @db.Uuid
+  nombre    String   @unique
+  orden     Int      @default(0)
+  activa    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  eventos EventoOperacional[]
+
+  @@map("categoria_evento")
+}
+
+model CondicionEvento {
+  id        String   @id @default(uuid()) @db.Uuid
+  nombre    String   @unique
+  orden     Int      @default(0)
+  activa    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  eventos EventoOperacional[]
+
+  @@map("condicion_evento")
+}
+
+model AreaOperacional {
+  id        String   @id @default(uuid()) @db.Uuid
+  nombre    String   @unique
+  orden     Int      @default(0)
+  activa    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  eventos EventoOperacional[]
+
+  @@map("area_operacional")
+}
+
+model MotivoEvento {
+  id        String   @id @default(uuid()) @db.Uuid
+  nombre    String   @unique
+  orden     Int      @default(0)
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  submotivos SubmotivoEvento[]
+  eventos    EventoOperacional[]
+
+  @@map("motivo_evento")
+}
+
+model SubmotivoEvento {
+  id        String   @id @default(uuid()) @db.Uuid
+  motivoId  String   @map("motivo_id") @db.Uuid
+  nombre    String
+  orden     Int      @default(0)
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  motivo  MotivoEvento        @relation(fields: [motivoId], references: [id], onDelete: Restrict)
+  eventos EventoOperacional[]
+
+  @@unique([motivoId, nombre])
+  @@map("submotivo_evento")
+}
+
+/// Registro inmutable de la sesión/cuenta, no necesariamente de la persona física.
+/// JSON se limita a snapshots de auditoría; los datos operacionales son relacionales.
+model Auditoria {
+  id         String   @id @default(uuid()) @db.Uuid
+  fecha      DateTime @default(now()) @db.Timestamptz(3)
+  actorEmail String?  @map("actor_email")
+  modulo     String
+  accion     String
+  entidad    String
+  /// Referencia descriptiva sin FK; admite también claves compuestas serializadas.
+  entidadId  String?  @map("entidad_id")
+  antes      Json?    @db.JsonB
+  despues    Json?    @db.JsonB
+
+  @@index([fecha])
+  @@index([modulo, entidad])
+  @@map("auditoria")
+}
