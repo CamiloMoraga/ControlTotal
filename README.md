@@ -11,7 +11,7 @@ estados vacíos; sus funcionalidades operacionales aún no están implementadas.
 - TypeScript
 - Tailwind CSS
 - PostgreSQL 18 local con Docker Compose
-- Prisma 7 (configuración inicial, sin modelos ni consultas)
+- Prisma 7 con esquema relacional y migración inicial
 
 ## Stack planificado
 
@@ -67,13 +67,23 @@ no utilizar `docker compose down -v`, ya que elimina los datos locales.
 ```bash
 npm run prisma:validate
 npm run prisma:generate
+npm run prisma:migrate:status
+npm run prisma:seed
 ```
 
 Prisma carga `DATABASE_URL` desde `.env` mediante `prisma.config.ts`. El cliente
 generado se guarda en `src/generated/prisma` y está ignorado por Git. El esquema
-todavía no contiene modelos: no hay tablas de negocio, migraciones ni seed.
-La integración de PrismaClient con Next.js se realizará después del diseño del
-modelo de dominio. Supabase y Vercel siguen como infraestructura planificada.
+incluye 19 modelos y tres enums. La migración inicial
+`20261008181019_init_control_total` crea las tablas, relaciones, índices y
+restricciones locales. Para aplicar migraciones pendientes en una base local
+nueva, ejecutar `npm run prisma:migrate:dev`. `npm run prisma:migrate:status`
+muestra su estado. El seed se puede repetir sin duplicar datos y contiene sólo
+datos maestros; sus catálogos de eventos se limitan a los valores predeterminados
+confirmados en el código legacy. Motivos, submotivos y opciones adicionales
+configuradas en Firestore siguen pendientes de confirmar.
+
+La UI todavía no consulta PostgreSQL. Supabase y Vercel siguen como
+infraestructura planificada.
 
 ## Validación y ejecución de producción
 

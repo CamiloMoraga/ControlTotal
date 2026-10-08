@@ -15,7 +15,10 @@
     "db:logs": "docker compose logs -f postgres",
     "db:ps": "docker compose ps",
     "prisma:validate": "prisma validate",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:migrate:status": "prisma migrate status",
+    "prisma:seed": "prisma db seed"
   },
   "dependencies": {
     "@prisma/client": "7.10.0",
