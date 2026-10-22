@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireAuthorizedUser } from "@/lib/auth";
 import { PageHeader } from "@/components/layout/page-header";
 import { ModuleIcon } from "@/components/layout/module-icon";
 import { modules, navigationGroups, type ModuleId } from "@/lib/navigation";
@@ -10,7 +11,8 @@ const overview = [
   { module: "diario", title: "Reportes" },
 ] as const satisfies ReadonlyArray<{ module: ModuleId; title: string }>;
 
-export default function HomePage() {
+export default async function HomePage() {
+  await requireAuthorizedUser();
   return (
     <>
       <PageHeader title={modules.inicio.title} description="Control y Monitoreo de pisciculturas. Espacio de trabajo operacional." />

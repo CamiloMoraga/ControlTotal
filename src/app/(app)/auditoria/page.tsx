@@ -1,8 +1,10 @@
 import { ModulePlaceholder } from "@/components/layout/module-placeholder";
+import { requireAuthorizedUser } from "@/lib/auth";
 import { modules } from "@/lib/navigation";
 
 export const metadata = { title: `${modules.auditoria.title} | Control Total` };
 
-export default function Page() {
+export default async function Page() {
+  await requireAuthorizedUser();
   return <ModulePlaceholder module="auditoria" />;
 }
