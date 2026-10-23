@@ -3,6 +3,8 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppHeader } from "@/components/layout/app-header";
 import { requireAuthorizedUser } from "@/lib/auth";
 
+export const runtime = "nodejs";
+
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const user = await requireAuthorizedUser();
   return (

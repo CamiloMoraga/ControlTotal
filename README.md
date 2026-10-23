@@ -81,8 +81,55 @@ configuradas en Firestore siguen pendientes de confirmar.
 
 La UI todavía no consulta PostgreSQL. Supabase se utiliza exclusivamente para
 autenticación, sesiones e identidad; los datos operacionales permanecen en
-PostgreSQL Docker y se accederán mediante Prisma. No se crean tablas de usuarios
+PostgreSQL Docker y se acceden mediante Prisma. No se crean tablas de usuarios
 o sesiones locales ni se consultan tablas operacionales mediante Supabase.
+
+### Cliente Prisma y pruebas relacionales
+
+`src/lib/prisma.ts` exporta el cliente para código de servidor Node.js. Usa el
+cliente generado, `@prisma/adapter-pg` 7.10.0 y `pg` con `DATABASE_URL`; falla
+con un mensaje sin credenciales si falta la URL. Se marca `server-only` y guarda
+el cliente en `globalThis` durante desarrollo para reutilizar el pool entre
+recargas de Next.js. Las futuras operaciones privadas deben llamar
+`requireAuthorizedUser()` antes de consultar Prisma, incluso desde Server
+Actions y Route Handlers. El layout privado declara el runtime Node.js;
+no se debe importar este módulo en Client Components ni en Proxy.
+
+Los scripts y pruebas crean un cliente independiente mediante
+`createPrismaClient()` de `src/lib/prisma-client.ts` y siempre esperan
+`$disconnect()` en `finally`. Para comprobar conexión, catálogos y relaciones:
+
+```bash
+npm run db:up
+npm run prisma:migrate:status
+npm run test:db
+```
+
+`test:db` requiere Node 24, dependencias instaladas, `.env` local y PostgreSQL
+disponible en `localhost:5434/controltotal_dev` con el seed inicial. Rechaza
+otras direcciones, puertos, bases, esquemas y parámetros SSL antes de escribir.
+Ejecuta `SELECT 1`, lee cantidades de maestros y compara los conteos de las 19
+tablas antes y después. No usa Supabase ni muestra contraseñas.
+Las pruebas lógicas se pueden ejecutar por separado sin PostgreSQL con
+`node --test tests/db/window.test.mjs`.
+
+Cada escenario de escritura corre en una transacción interactiva que lanza una
+excepción de control para forzar `ROLLBACK`; cualquier error inesperado también
+revierte la transacción. Los errores de restricciones se aíslan con
+`SAVEPOINT`/`ROLLBACK TO SAVEPOINT` dentro de ella. PostgreSQL revierte una
+transacción abierta si el proceso pierde la conexión. Las pruebas lógicas de
+ventanas usan `America/Santiago` y el runner nativo de Node con `tsx`; no
+requieren la base. Ningún fixture se confirma y se conservan los registros
+preexistentes. No usar `prisma migrate reset` ni eliminar el volumen Docker.
+
+La combinación `motivoId`/`submotivoId` actualmente sólo tiene claves foráneas
+independientes: PostgreSQL acepta un submotivo de otro motivo o un submotivo sin
+motivo. Antes de crear el módulo Eventos, conviene imponer una clave foránea
+compuesta `(submotivo_id, motivo_id)` hacia una clave única de
+`submotivo_evento(id, motivo_id)` y un `CHECK` que exija motivo cuando haya
+submotivo. Esto protege también escrituras ajenas al servicio. La alternativa
+de validarlo sólo en el servicio es más simple al inicio, pero permite
+inconsistencias desde SQL, scripts u otros clientes.
 
 ## Supabase Auth e inicio de sesión local
 
