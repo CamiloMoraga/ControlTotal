@@ -9,7 +9,7 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-20 flex w-[232px] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-text">
+    <aside className="fixed inset-y-0 left-0 z-20 hidden w-[232px] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-text md:flex">
       <Link href={modules.inicio.href} className="flex h-20 shrink-0 items-center gap-3 border-b border-sidebar-border px-6" aria-label="Control Total: inicio">
         <span className="flex size-9 items-center justify-center rounded-lg border border-sidebar-border bg-sidebar-active text-sm font-bold tracking-tight text-white">CT</span>
         <span>

@@ -8,10 +8,10 @@ export function AppHeader({ email }: { email: string }) {
   const currentModule = getCurrentModule(usePathname());
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-surface px-8">
+    <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border bg-surface px-4 py-3 md:px-8">
       <span className="text-sm font-medium text-foreground">{currentModule?.title ?? "Control Total"}</span>
       <div className="flex items-center gap-4">
-        <span className="text-xs text-muted">{email}</span>
+        <span className="hidden text-xs text-muted sm:inline">{email}</span>
         <LogoutForm />
       </div>
     </header>

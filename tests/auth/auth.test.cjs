@@ -52,6 +52,8 @@ function fixture(t) {
   const load = moduleLoader({
     "next/navigation": { redirect },
     "next/cache": { revalidatePath: (...args) => state.revalidated.push(args) },
+    "@/lib/pisciculturas/data": { listPisciculturas: async () => [] },
+    "@/components/configuracion/piscicultura-list": { PisciculturaList: () => null },
     "@/lib/supabase/server": {
       createClient: async () => client,
       clearAuthCookies: async () => { state.cleared++; },
