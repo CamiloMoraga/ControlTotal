@@ -54,6 +54,10 @@ function fixture(t) {
     "next/cache": { revalidatePath: (...args) => state.revalidated.push(args) },
     "@/lib/pisciculturas/data": { listPisciculturas: async () => [] },
     "@/components/configuracion/piscicultura-list": { PisciculturaList: () => null },
+    "@/lib/auditoria/data": { listAuditRecords: async () => ({ rows: [], total: 0, totalPages: 1, outOfRange: false }), getAuditDetail: async () => null },
+    "@/components/auditoria/audit-filters": { AuditFiltersForm: () => null },
+    "@/components/auditoria/audit-table": { AuditTable: () => null },
+    "@/components/auditoria/audit-detail": { AuditDetailPanel: () => null },
     "@/lib/supabase/server": {
       createClient: async () => client,
       clearAuthCookies: async () => { state.cleared++; },
@@ -198,11 +202,12 @@ for (const page of pages) {
   test(`página /${page}: requiere autorización propia además del layout`, async (t) => {
     const { state, load } = fixture(t);
     const Page = load(`src/app/(app)/${page ? `${page}/` : ""}page.tsx`).default;
-    assert.ok(await Page());
+    const props = { searchParams: Promise.resolve({}) };
+    assert.ok(await Page(props));
     state.user.email = "other@example.test";
-    await assert.rejects(Page(), redirectedTo("/login?reason=denied"));
+    await assert.rejects(Page(props), redirectedTo("/login?reason=denied"));
     state.user = null;
-    await assert.rejects(Page(), redirectedTo("/login?reason=session"));
+    await assert.rejects(Page(props), redirectedTo("/login?reason=session"));
   });
 }
 
