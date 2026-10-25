@@ -1,6 +1,6 @@
 -- Datos maestros iniciales. Repetir este archivo no borra filas ni cambia UUID.
 -- Los catálogos de eventos sólo incluyen los defaults verificables en
--- assets/js/legacy.js; las opciones adicionales residen en Firestore y no
+-- legacy/assets/js/legacy.js; las opciones adicionales residen en Firestore y no
 -- están disponibles en este repositorio.
 BEGIN;
 

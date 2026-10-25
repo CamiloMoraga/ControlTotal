@@ -1,4 +1,4 @@
-// Ejecutar: node tests/eliminacion-eventos.test.cjs
+// Ejecutar desde la raíz de V2: node legacy/tests/eliminacion-eventos.test.cjs
 // Sustituye pruebas del borrado de copias: ahora los arrays diarios son legacy intocable.
 const test = require('node:test');
 const { entorno, evento, reporte, clone, assert } = require('./helpers/incidencias.cjs');

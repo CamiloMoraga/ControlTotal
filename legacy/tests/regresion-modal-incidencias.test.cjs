@@ -1,4 +1,4 @@
-// Ejecutar: node tests/regresion-modal-incidencias.test.cjs
+// Ejecutar desde la raíz de V2: node legacy/tests/regresion-modal-incidencias.test.cjs
 // Validación lógica con DOM/Firebase simulados; no conecta a producción.
 const test = require('node:test');
 const fs = require('node:fs');

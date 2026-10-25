@@ -1,9 +1,10 @@
-# Control Total
+# Control Total V2
 
 Nueva aplicación operacional para Control y Monitoreo de pisciculturas.
 
-**Estado:** Control Total v2 en desarrollo. Los módulos disponen de navegación y
-estados vacíos; sus funcionalidades operacionales aún no están implementadas.
+**Estado:** Control Total V2 en desarrollo. Configuración permite administrar
+pisciculturas y parámetros; Auditoría permite consultar sus cambios. Las demás
+secciones operacionales siguen en desarrollo y muestran estados vacíos.
 
 ## Stack actual
 
@@ -11,8 +12,19 @@ estados vacíos; sus funcionalidades operacionales aún no están implementadas.
 - TypeScript
 - Tailwind CSS
 - PostgreSQL 18 local con Docker Compose
-- Prisma 7 con esquema relacional y migración inicial
+- Prisma 7 con esquema relacional y migraciones versionadas
 - Supabase Auth con sesiones SSR en cookies
+
+## Estructura del repositorio
+
+- `src/app/`: rutas, páginas y acciones de Next.js.
+- `src/components/` y `src/lib/`: interfaz y lógica de servidor de V2.
+- `prisma/`: esquema, migraciones y datos maestros de PostgreSQL.
+- `tests/auth/` y `tests/db/`: pruebas de V2.
+- `legacy/`: código y documentación históricos de V1, aislados de Next.js.
+
+El HTML, CSS, JavaScript y launcher de V1 no forman parte de la aplicación V2.
+La copia operativa independiente de V1 se mantiene fuera de este repositorio.
 
 
 ## Desarrollo local
@@ -27,7 +39,8 @@ npm run dev
 
 Abrir [http://localhost:3000](http://localhost:3000).
 El acceso requiere iniciar sesión con la cuenta autorizada en Supabase Auth.
-La UI todavía no consulta la base de datos operacional.
+Configuración y Auditoría consultan PostgreSQL mediante Prisma. El resto de
+los módulos aún no tiene operaciones de base de datos en la interfaz.
 
 ## PostgreSQL local
 
@@ -72,14 +85,15 @@ Prisma carga `DATABASE_URL` desde `.env` mediante `prisma.config.ts`. El cliente
 generado se guarda en `src/generated/prisma` y está ignorado por Git. El esquema
 incluye 19 modelos y tres enums. La migración inicial
 `20261008181019_init_control_total` crea las tablas, relaciones, índices y
-restricciones locales. Para aplicar migraciones pendientes en una base local
+restricciones locales; otras tres migraciones normalizan nombres de pisciculturas
+y parámetros. Para aplicar migraciones pendientes en una base local
 nueva, ejecutar `npm run prisma:migrate:dev`. `npm run prisma:migrate:status`
 muestra su estado. El seed se puede repetir sin duplicar datos y contiene sólo
 datos maestros; sus catálogos de eventos se limitan a los valores predeterminados
 confirmados en el código legacy. Motivos, submotivos y opciones adicionales
 configuradas en Firestore siguen pendientes de confirmar.
 
-La UI todavía no consulta PostgreSQL. Supabase se utiliza exclusivamente para
+Supabase se utiliza exclusivamente para
 autenticación, sesiones e identidad; los datos operacionales permanecen en
 PostgreSQL Docker y se acceden mediante Prisma. No se crean tablas de usuarios
 o sesiones locales ni se consultan tablas operacionales mediante Supabase.
@@ -87,7 +101,7 @@ o sesiones locales ni se consultan tablas operacionales mediante Supabase.
 ### Cliente Prisma y pruebas relacionales
 
 `src/lib/prisma.ts` exporta el cliente para código de servidor Node.js. Usa el
-cliente generado, `@prisma/adapter-pg` 7.10.0 y `pg` con `DATABASE_URL`; falla
+cliente generado, `@prisma/adapter-pg` 7.10.1 y `pg` con `DATABASE_URL`; falla
 con un mensaje sin credenciales si falta la URL. Se marca `server-only` y guarda
 el cliente en `globalThis` durante desarrollo para reutilizar el pool entre
 recargas de Next.js. Las futuras operaciones privadas deben llamar
@@ -219,19 +233,16 @@ Los scripts de desarrollo y compilación utilizan Webpack.
 
 ## Legacy
 
-El sistema anterior basado en Firebase se conserva en `/legacy` solamente como
-referencia funcional y técnica. Sus configuraciones de acceso fueron saneadas;
-no debe utilizarse como aplicación productiva.
+El sistema anterior basado en Firebase se conserva en `legacy/` solamente como
+referencia funcional y técnica. Incluye una instantánea de su código, pruebas
+históricas y notas de auditoría; no se integra con V2 ni se usa como aplicación
+operativa desde este repositorio. Sus configuraciones de acceso fueron saneadas.
 
 No se migrarán datos históricos desde Firebase hacia PostgreSQL. La nueva base
 comenzará desde cero a partir de la puesta en marcha de Control Total v2.
 
-Temporalmente permanecen `index.html`, `Reporte_Unificado70.html`, `assets/`,
-`scripts/`, `tests/` y `launcher/` del sistema anterior. No interfieren con las
-rutas de Next.js y no se incorporan a la aplicación nueva. TypeScript y ESLint
-validan la nueva base sin refactorizar el código histórico.
-
 Las instrucciones y notas anteriores se conservaron en
 [legacy/README-aplicacion-anterior.md](legacy/README-aplicacion-anterior.md).
 Describen exclusivamente el sistema histórico. Consultar también
-[legacy/README.md](legacy/README.md).
+[legacy/README.md](legacy/README.md) y el
+[inventario de limpieza](legacy/INVENTARIO-LIMPIEZA.md).

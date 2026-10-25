@@ -1,36 +1,37 @@
-# Reporte Control Total
+# Notas archivadas de Control Total V1
+
+Este documento conserva decisiones técnicas e instrucciones de distribución de
+la versión anterior. Las indicaciones de ejecución siguientes describen el
+paquete V1 histórico; no son pasos para iniciar Control Total V2 ni convierten
+este directorio en la copia operativa independiente de V1. Las rutas mencionadas
+son relativas a `legacy/`, salvo cuando se indique otra base.
 
 Aplicación Vanilla HTML/CSS/JavaScript conectada a Firebase Authentication y
 Firestore. El CSS está en `assets/css/app.css` y el JavaScript de la aplicación
 en `assets/js/legacy.js`. Este último se carga como script clásico al final de
 `index.html`, después de las dependencias CDN, sin `async`, `defer` ni módulos
 ES. La copia exacta del documento original está en
-`legacy/Reporte_Unificado70.html`.
+`Reporte_Unificado70.html`.
 
-## Ejecutar en Windows
+## Distribución histórica en Windows
 
-Haz doble clic sobre `ReporteControlTotal.exe`. El launcher inicia el servidor
-local en `127.0.0.1:5500` y abre `http://127.0.0.1:5500` en el navegador
-predeterminado. No necesitas instalar Python, Node, npm ni Go, ni escribir
-comandos.
+El paquete anterior se iniciaba con `ReporteControlTotal.exe`. El launcher servía
+los archivos locales en `127.0.0.1:5500` y abría esa dirección en el navegador
+predeterminado. El paquete distribuido no requería Python, Node, npm ni Go.
 
-Mantén el ejecutable en la raíz del proyecto, junto a `index.html` y `assets/`.
-Puedes abrirlo mediante un acceso directo con otro directorio de trabajo:
-los archivos se buscan junto al ejecutable, no en el directorio de trabajo.
+El ejecutable se distribuía junto a `index.html` y `assets/`.
+Los archivos se buscaban junto al ejecutable, no en el directorio de trabajo.
 
-Mantén abierta la ventana del servidor mientras utilizas el reporte. Para
-detenerlo, cierra esa ventana o presiona `Ctrl+C`. Si falta `index.html` o el
-puerto 5500 está ocupado, se muestra un error y la ventana espera Enter antes
-de cerrarse. Si falla la apertura automática del navegador, puedes abrir la
-dirección indicada manualmente.
+La ventana del servidor debía permanecer abierta. Si faltaba `index.html` o el
+puerto 5500 estaba ocupado, se mostraba un error y la ventana esperaba Enter
+antes de cerrarse.
 
-El servidor acepta conexiones únicamente en `127.0.0.1`. No requiere permisos
-de administrador ni cambios en el firewall. Las dependencias CDN y Firebase
-siguen utilizando Internet como en la aplicación original.
+El servidor aceptaba conexiones únicamente en `127.0.0.1`. Las dependencias CDN
+y Firebase requerían Internet.
 
-## Compilar en Fedora
+## Compilación histórica en Fedora
 
-Go se necesita solamente en desarrollo. Desde la raíz del proyecto:
+Go se necesitaba solamente en desarrollo. Desde `legacy/`:
 
 ```bash
 cd launcher
@@ -97,7 +98,7 @@ inicio real del evento y la hora de corte; la visibilidad depende de la
 intersección temporal, incluso para incidencias retroactivas. Los guardados
 rechazan cierres anteriores o iguales al inicio.
 
-Antes de distribuir esta versión, ejecutar la auditoría no destructiva documentada
+La auditoría no destructiva se documentó
 en [scripts/README-incidencias.md](scripts/README-incidencias.md) para identificar
 IDs sólo legacy y metadata histórica incompleta. El script no se carga ni se
 ejecuta automáticamente. No hay migración de los registros sólo legacy.
@@ -105,8 +106,8 @@ ejecuta automáticamente. No hay migración de los registros sólo legacy.
 Validación local sin acceso a Firebase:
 
 ```bash
-node tests/normalizacion-incidencias.test.cjs
-node tests/eliminacion-eventos.test.cjs
-node tests/regresion-modal-incidencias.test.cjs
-node tests/semantica-temporal.test.cjs
+node legacy/tests/normalizacion-incidencias.test.cjs
+node legacy/tests/eliminacion-eventos.test.cjs
+node legacy/tests/regresion-modal-incidencias.test.cjs
+node legacy/tests/semantica-temporal.test.cjs
 ```

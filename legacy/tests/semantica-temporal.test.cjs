@@ -1,4 +1,4 @@
-// Ejecutar: node tests/semantica-temporal.test.cjs
+// Ejecutar desde la raíz de V2: node legacy/tests/semantica-temporal.test.cjs
 // Fechas locales en America/Santiago; Firebase y DOM simulados, sin cambios en producción.
 const test = require('node:test');
 const { entorno, evento, reporte, clone, assert, vm } = require('./helpers/incidencias.cjs');

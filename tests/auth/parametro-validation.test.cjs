@@ -15,7 +15,7 @@ test("creación válida, código obligatorio y normalizado", () => {
     codigo: "O2_TEST", nombre: "Oxígeno de prueba", unidad: "mg/L", orden: 0,
   });
   assert.ok(validateParametro(form({ codigo: "  " })).errors.codigo);
-  for (const codigo of ["A-B", "ÁREA", "A B", "A/B", "ß", "A".repeat(PARAMETRO_LIMITS.codigo + 1)]) {
+  for (const codigo of ["A-B", "ÁREA", "A B", "A/B", "ß", "ı", "ſ", "A".repeat(PARAMETRO_LIMITS.codigo + 1)]) {
     assert.ok(validateParametro(form({ codigo })).errors.codigo, codigo);
   }
 });

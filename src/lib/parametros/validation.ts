@@ -18,14 +18,15 @@ export function validateParametro(form: FormData): { data?: ParametroInput; erro
     const value = form.get(key);
     return typeof value === "string" ? value : null;
   };
-  const codigo = (raw("codigo") ?? "").trim().toUpperCase();
+  const rawCodigo = (raw("codigo") ?? "").trim();
+  const codigo = rawCodigo.toUpperCase();
   const nombre = normalizeName(raw("nombre") ?? "");
   const unidad = (raw("unidad") ?? "").trim() || null;
   const ordenText = raw("orden")?.trim() ?? "0";
   const orden = /^\d+$/.test(ordenText) ? Number(ordenText) : NaN;
 
   if (!codigo) errors.codigo = "Ingresa un código.";
-  else if (!/^[A-Z0-9_]+$/.test(codigo) || codigo.length > PARAMETRO_LIMITS.codigo) {
+  else if (!/^[A-Za-z0-9_]+$/.test(rawCodigo) || codigo.length > PARAMETRO_LIMITS.codigo) {
     errors.codigo = `Usa hasta ${PARAMETRO_LIMITS.codigo} letras ASCII, números o guiones bajos.`;
   }
   if (!nombre) errors.nombre = "Ingresa un nombre.";

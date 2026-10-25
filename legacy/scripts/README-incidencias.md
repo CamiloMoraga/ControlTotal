@@ -1,5 +1,9 @@
 # Normalización de incidencias y auditoría
 
+Documento histórico de Control Total V1. El script y las pruebas descritos aquí
+pertenecen a `legacy/`; no son parte de los scripts npm ni de los módulos V2.
+Las rutas de pruebas de la última sección parten de la raíz del repositorio V2.
+
 `eventos_historicos/{id}` es la fuente canónica. La carga del reporte lee solamente
 campos diarios de `reportes_unificados/RU_fecha`; los arrays legacy no se usan ni
 se escriben ni se eliminan. Se conserva el modal de confirmación de incidencias,
@@ -86,10 +90,10 @@ Memoria, visibilidad y tarjeta se actualizan después de confirmar la escritura.
 ## Validación
 
 ```bash
-node tests/normalizacion-incidencias.test.cjs
-node tests/eliminacion-eventos.test.cjs
-node tests/regresion-modal-incidencias.test.cjs
-node tests/semantica-temporal.test.cjs
+node legacy/tests/normalizacion-incidencias.test.cjs
+node legacy/tests/eliminacion-eventos.test.cjs
+node legacy/tests/regresion-modal-incidencias.test.cjs
+node legacy/tests/semantica-temporal.test.cjs
 ```
 
 Las pruebas utilizan dobles de Firebase/DOM y no conectan a producción. La auditoría

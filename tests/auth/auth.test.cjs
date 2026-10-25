@@ -54,6 +54,8 @@ function fixture(t) {
     "next/cache": { revalidatePath: (...args) => state.revalidated.push(args) },
     "@/lib/pisciculturas/data": { listPisciculturas: async () => [] },
     "@/components/configuracion/piscicultura-list": { PisciculturaList: () => null },
+    "@/lib/parametros/data": { listParametros: async () => [] },
+    "@/components/configuracion/parametro-list": { ParametroList: () => null },
     "@/lib/auditoria/data": { listAuditRecords: async () => ({ rows: [], total: 0, totalPages: 1, outOfRange: false }), getAuditDetail: async () => null },
     "@/components/auditoria/audit-filters": { AuditFiltersForm: () => null },
     "@/components/auditoria/audit-table": { AuditTable: () => null },

@@ -1,5 +1,7 @@
 /ReporteControlTotal.exe
 /ReporteControlTotal
+/legacy/ReporteControlTotal.exe
+/legacy/ReporteControlTotal
 
 # Entornos locales y credenciales (también en subdirectorios)
 .env

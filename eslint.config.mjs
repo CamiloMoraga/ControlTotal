@@ -9,10 +9,8 @@ export default defineConfig([
     ".next/**",
     "out/**",
     "next-env.d.ts",
-    // Código histórico conservado sin refactorizar en Control Total v2.
+    // Código histórico conservado sin refactorizar en Control Total V2.
     "legacy/**",
-    "assets/**",
-    "scripts/**",
     "tests/**",
   ]),
 ]);

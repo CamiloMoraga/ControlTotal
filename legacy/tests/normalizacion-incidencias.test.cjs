@@ -1,4 +1,4 @@
-// Ejecutar: node tests/normalizacion-incidencias.test.cjs
+// Ejecutar desde la raíz de V2: node legacy/tests/normalizacion-incidencias.test.cjs
 const test = require('node:test');
 const fs = require('node:fs');
 const path = require('node:path');
