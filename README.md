@@ -3,7 +3,7 @@
 Nueva aplicación operacional para Control y Monitoreo de pisciculturas.
 
 **Estado:** Control Total V2 en desarrollo. Configuración permite administrar
-pisciculturas y parámetros; Auditoría permite consultar sus cambios. Las demás
+pisciculturas, parámetros y los cinco catálogos de eventos; Auditoría permite consultar sus cambios. Las demás
 secciones operacionales siguen en desarrollo y muestran estados vacíos.
 
 ## Stack actual
@@ -85,8 +85,8 @@ Prisma carga `DATABASE_URL` desde `.env` mediante `prisma.config.ts`. El cliente
 generado se guarda en `src/generated/prisma` y está ignorado por Git. El esquema
 incluye 19 modelos y tres enums. La migración inicial
 `20261008181019_init_control_total` crea las tablas, relaciones, índices y
-restricciones locales; otras tres migraciones normalizan nombres de pisciculturas
-y parámetros. Para aplicar migraciones pendientes en una base local
+restricciones locales; tres migraciones normalizan nombres de pisciculturas
+y parámetros, y otra agrega unicidad normalizada a los catálogos de eventos. Para aplicar migraciones pendientes en una base local
 nueva, ejecutar `npm run prisma:migrate:dev`. `npm run prisma:migrate:status`
 muestra su estado. El seed se puede repetir sin duplicar datos y contiene sólo
 datos maestros; sus catálogos de eventos se limitan a los valores predeterminados

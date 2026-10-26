@@ -6,15 +6,22 @@ import { listPisciculturas } from "@/lib/pisciculturas/data";
 import { PisciculturaList } from "@/components/configuracion/piscicultura-list";
 import { listParametros } from "@/lib/parametros/data";
 import { ParametroList } from "@/components/configuracion/parametro-list";
+import { EventCatalogList } from "@/components/configuracion/event-catalog-list";
+import { listCatalog, listMotivosForCatalog } from "@/lib/event-catalogs/data";
+import { validKind } from "@/lib/event-catalogs/validation";
 
 export const metadata = { title: `${modules.configuracion.title} | Control Total` };
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ seccion?: string }> }) {
+export default async function Page({ searchParams }: { searchParams: Promise<{ seccion?: string; catalogo?: string }> }) {
   await requireAuthorizedUser();
-  const seccion = (await searchParams).seccion;
+  const params = await searchParams;
+  const seccion = params.seccion;
   const selected = seccion === "parametros" || seccion === "eventos" ? seccion : "pisciculturas";
+  const catalogo = typeof params.catalogo === "string" && validKind(params.catalogo) ? params.catalogo : "categorias";
   const rows = selected === "pisciculturas" ? await listPisciculturas() : null;
   const parametros = selected === "parametros" ? await listParametros() : null;
+  const eventRows = selected === "eventos" ? await listCatalog(catalogo) : null;
+  const motivos = selected === "eventos" && catalogo === "submotivos" ? await listMotivosForCatalog() : [];
   return <>
     <PageHeader title={modules.configuracion.title} description={modules.configuracion.description} />
     <nav aria-label="Secciones de configuración" className="mb-6 flex flex-wrap gap-2 border-b border-border pb-3">
@@ -28,9 +35,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
     </nav>
     {rows && <PisciculturaList rows={rows} />}
     {parametros && <ParametroList rows={parametros} />}
-    {selected === "eventos" && <section aria-labelledby="eventos-title" className="rounded-lg border border-border bg-surface p-5">
-      <h2 id="eventos-title" className="text-lg font-semibold">Catálogos de Eventos</h2>
-      <p className="mt-2 text-sm text-muted">Administración pendiente del Bloque 4.2.</p>
-    </section>}
+    {eventRows && <EventCatalogList key={catalogo} kind={catalogo} rows={eventRows} motivos={motivos} />}
   </>;
 }
