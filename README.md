@@ -26,6 +26,10 @@ secciones operacionales siguen en desarrollo y muestran estados vacíos.
 El HTML, CSS, JavaScript y launcher de V1 no forman parte de la aplicación V2.
 La copia operativa independiente de V1 se mantiene fuera de este repositorio.
 
+## Documentación funcional y técnica
+
+Consultar el [índice de documentación](docs/README.md) para las [especificaciones de módulos](docs/modulos/), las [decisiones arquitectónicas](docs/decisiones/) y el [modelo de datos](docs/arquitectura/modelo-datos.md). El [roadmap](docs/planificacion/roadmap.md) distingue lo implementado de lo pendiente.
+
 
 ## Desarrollo local
 
