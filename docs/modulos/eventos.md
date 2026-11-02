@@ -1,6 +1,6 @@
 # Eventos operacionales
 
-**Estado:** requisitos confirmados; registro operacional pendiente. La administración técnica de catálogos ya figura en Configuración.
+**Estado:** requisitos del registro operacional confirmados parcialmente; su implementación sigue pendiente. El Bloque 4.2 de administración de catálogos está completado, incluida la validación manual de la interfaz confirmada por el usuario.
 
 ## Requisitos confirmados
 
@@ -15,6 +15,6 @@ El [esquema](../../prisma/schema.prisma) define `EventoOperacional` con `piscicu
 
 ## Catálogos
 
-`CategoriaEvento`, `CondicionEvento`, `AreaOperacional`, `MotivoEvento` y `SubmotivoEvento` clasifican eventos. `SubmotivoEvento` pertenece a un `MotivoEvento`. El Bloque 4.2 contempla su administración; el código actual ya ofrece operaciones de catálogo en Configuración. Véanse las [notas técnicas existentes](../event-catalogs.md) y el [roadmap](../planificacion/roadmap.md) para distinguir implementación y validación.
+`CategoriaEvento`, `CondicionEvento`, `AreaOperacional`, `MotivoEvento` y `SubmotivoEvento` clasifican eventos. `SubmotivoEvento` pertenece a un `MotivoEvento`. El Bloque 4.2 completó su administración en Configuración. Véanse las [notas técnicas existentes](../event-catalogs.md) y el [roadmap](../planificacion/roadmap.md).
 
 **Validación futura:** `EventoOperacional` tiene claves foráneas independientes para `motivoId` y `submotivoId`; estas no garantizan que el submotivo pertenezca al motivo elegido. Al implementar el registro operacional, validar esa correspondencia. El mecanismo de refuerzo en base de datos sigue por decidirse.
