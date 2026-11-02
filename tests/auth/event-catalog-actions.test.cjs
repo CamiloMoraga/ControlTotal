@@ -17,6 +17,7 @@ test("validación de los cinco catálogos", () => {
   assert.equal(normalizeName("  Uno  dos  "), "Uno dos");
   assert.ok(validateCatalog("submotivos", form("Uno", "0")).errors.motivoId);
   assert.ok(validateCatalog("submotivos", form("Uno", "0", "xyz")).errors.motivoId);
+  assert.ok(validateCatalog("submotivos", form("Uno", "0", "96b516de-4cf6-454b-241844258d84")).errors.motivoId);
   assert.equal(validateCatalog("submotivos", form("Uno", "0", "96b516de-4cf6-454b-b558-241844258d84")).data.motivoId,
     "96b516de-4cf6-454b-b558-241844258d84");
 });

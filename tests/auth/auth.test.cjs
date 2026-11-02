@@ -31,7 +31,7 @@ function fixture(t) {
     user: { id: "user-id", email: allowedEmail, extraPrivateField: "not returned" },
     userError: null, signInError: null, claims: { sub: "user-id" }, claimsError: null,
     signOutError: null, refresh: [], claimsThrows: false, userThrows: false,
-    cleared: 0, userCalls: 0, signInCalls: [], signOutCalls: [], revalidated: [],
+    cleared: 0, userCalls: 0, signInCalls: [], signOutCalls: [], revalidated: [], catalogReads: [],
   };
   const client = { auth: {
     getUser: async () => {
@@ -56,6 +56,11 @@ function fixture(t) {
     "@/components/configuracion/piscicultura-list": { PisciculturaList: () => null },
     "@/lib/parametros/data": { listParametros: async () => [] },
     "@/components/configuracion/parametro-list": { ParametroList: () => null },
+    "@/lib/event-catalogs/data": {
+      listCatalog: async (kind) => { state.catalogReads.push(kind); return []; },
+      listMotivosForCatalog: async () => { state.catalogReads.push("motivos"); return []; },
+    },
+    "@/components/configuracion/event-catalog-list": { EventCatalogList: () => null },
     "@/lib/auditoria/data": { listAuditRecords: async () => ({ rows: [], total: 0, totalPages: 1, outOfRange: false }), getAuditDetail: async () => null },
     "@/components/auditoria/audit-filters": { AuditFiltersForm: () => null },
     "@/components/auditoria/audit-table": { AuditTable: () => null },
@@ -212,6 +217,17 @@ for (const page of pages) {
     await assert.rejects(Page(props), redirectedTo("/login?reason=session"));
   });
 }
+
+test("/configuracion autoriza antes de consultar catálogos de eventos", async (t) => {
+  const { state, load } = fixture(t);
+  const Page = load("src/app/(app)/configuracion/page.tsx").default;
+  const props = { searchParams: Promise.resolve({ seccion: "eventos", catalogo: "submotivos" }) };
+  assert.ok(await Page(props));
+  assert.deepEqual(state.catalogReads, ["submotivos", "motivos"]);
+  state.user.email = "other@example.test";
+  await assert.rejects(Page(props), redirectedTo("/login?reason=denied"));
+  assert.deepEqual(state.catalogReads, ["submotivos", "motivos"]);
+});
 
 test("layout verifica autorización antes de devolver el encabezado privado", async (t) => {
   const { state, load } = fixture(t);

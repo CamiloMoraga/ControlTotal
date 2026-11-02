@@ -11,7 +11,7 @@ export type CatalogInput = { nombre: string; orden: number; motivoId?: string };
 export type FieldErrors = Partial<Record<"nombre" | "orden" | "motivoId", string>>;
 export const NAME_LIMIT = 120;
 export const ORDER_LIMIT = 2147483647;
-export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function validKind(kind: string): kind is CatalogKind { return Object.hasOwn(CATALOGS, kind); }
 export function normalizeName(value: string) { return value.trim().replace(/\s+/gu, " "); }
