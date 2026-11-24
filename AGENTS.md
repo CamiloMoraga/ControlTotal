@@ -4,7 +4,7 @@
 
 Control Total v2 es una aplicación de control y monitoreo operacional de pisciculturas.
 
-Este archivo establece las reglas de trabajo para Codex y otros agentes de desarrollo.
+Este archivo establece las reglas de trabajo para OpenCode, Codex y otros agentes de desarrollo.
 
 Las instrucciones aquí definidas deben respetarse durante las tareas de análisis, implementación, mantenimiento, pruebas y documentación.
 
@@ -101,7 +101,7 @@ No inventar nuevos roles ni permisos. Utilizar únicamente los mecanismos realme
 
 ## 7. Prisma y PostgreSQL
 
-- Utilizar el cliente Prisma existente.
+- Utilizar el cliente Prisma existente (Prisma 7 con salida generada en `src/generated/prisma`); no introducir patrones heredados de Prisma 6.
 - Respetar relaciones, claves foráneas y restricciones.
 - Preferir transacciones para operaciones que requieran consistencia entre varias escrituras.
 - Validar los datos en el servidor.
@@ -158,25 +158,29 @@ npm audit
 ```
 
 Comprobar TypeScript cuando el build no sea suficiente o se requiera una verificación independiente.
-
 Agregar pruebas para cambios de lógica, persistencia, validación y autorización.
-
 Las pruebas de base de datos deben preservar los registros existentes, utilizando rollback o aislamiento seguro.
-
 No declarar pruebas exitosas si no pudieron ejecutarse.
-
 Diferenciar claramente entre pruebas automatizadas, pruebas manuales y verificaciones parciales.
 
-## 11. Flujo de trabajo y Git
+## 11. Flujo de trabajo, higiene y Git
 
-- Trabajar directamente sobre `main`, salvo indicación contraria.
-- Ejecutar `git status --short` antes de modificar archivos.
+- Trabajar directamente sobre main, salvo indicación contraria.
+- Ejecutar git status --short antes de modificar archivos.
 - Preservar cambios locales existentes.
 - No crear ramas sin solicitud.
 - No hacer commit ni push automáticamente.
 - No modificar archivos ajenos al alcance de la tarea.
 - Evitar cambios masivos de formato.
-- Revisar `git diff --check` antes de entregar.
+- Revisar git diff --check antes de entregar.
+
+Higiene de archivos temporales:
+
+- Se permite crear scripts o directorios temporales (scripts/, dist/, archivos auxiliares de prueba o depuración) durante la tarea cuando sean útiles para verificar o depurar.
+- Todo archivo o carpeta temporal que no vaya a usarse de forma permanente en el proyecto debe eliminarse antes de finalizar la tarea.
+- Si un script creado resulta útil para conservarlo de forma permanente, indicarlo explícitamente en la entrega para su aprobación en lugar de dejarlo sin aviso.
+
+- Confirmar con git status --short al final que no queden residuos, carpetas temporales ni archivos sin rastrear fuera del alcance acordado.
 
 Si el entorno no dispone de una herramienta requerida, informar la limitación sin inventar resultados.
 
@@ -185,7 +189,7 @@ Si el entorno no dispone de una herramienta requerida, informar la limitación s
 Al terminar una implementación, informar:
 
 1. Funcionalidad completada.
-2. Archivos creados y modificados.
+2. Archivos creados, modificados y temporales eliminados (o propuestos para conservar).
 3. Decisiones técnicas relevantes.
 4. Migraciones, cuando existan.
 5. Resultado de las pruebas.
@@ -202,8 +206,8 @@ Conservar íntegramente a continuación el bloque administrado por Next.js, incl
 
 ## This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in node_modules/next/dist/docs/ (resolved from this file's directory; in monorepos the next package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+This block is written and re-added by next dev — verify at node_modules/next/dist/server/lib/generate-agent-files.js. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
